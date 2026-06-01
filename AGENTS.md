@@ -12,11 +12,12 @@ outputs unless they are intentionally part of a test fixture.
 ## Build, Test, and Development Commands
 
 - `cargo build --release --offline`: builds the optimized Rust binary using
-  cached dependencies.
+  checked-in vendored dependencies.
 - `cargo run --release -- --in-file generic80_ss_125c_1p116v_0p84v.lib --out-file /tmp/out.lib`:
   runs the Rust filter locally.
 - `cargo fmt --check`: verifies standard Rust formatting.
-- `cargo check --offline`: verifies the crate using cached dependencies.
+- `cargo check --offline`: verifies the crate using checked-in vendored
+  dependencies.
 - `hyperfine --warmup 3 --runs 10 '<rust command>'`: measures runtime
   performance.
 
@@ -44,6 +45,13 @@ change. Pull requests should include the command lines used for validation,
 note any performance impact, and mention fixture files touched or regenerated.
 Do not include large generated outputs unless the PR explains why they are
 needed.
+
+## Dependency Management
+
+Rust dependencies are vendored under `vendor/` and configured by
+`.cargo/config.toml`. Keep `Cargo.lock`, `Cargo.toml`, `.cargo/config.toml`, and
+`vendor/` in sync when changing dependencies. Regenerate the vendor tree with
+`cargo vendor vendor`.
 
 ## Agent-Specific Instructions
 

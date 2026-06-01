@@ -6,13 +6,16 @@ This project builds one Rust executable: `liberty_filter`.
 
 - Rust 2021 toolchain
 - Cargo
-- Cached crates when building with `--offline`
+- Vendored crates in `vendor/`
 
 ## Build
 
 ```sh
 cargo build --release --offline
 ```
+
+`--offline` is expected to work from the checked-in `vendor/` directory. Do not
+delete `vendor/` unless you regenerate it with `cargo vendor`.
 
 The optimized executable is:
 
