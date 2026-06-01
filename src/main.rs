@@ -222,14 +222,6 @@ fn run(opts: &Options) -> io::Result<()> {
                 if byte == b'"' {
                     in_quotes = false;
                 }
-                if tmp_buf.len() == buf_size {
-                    out_buf.extend_from_slice(&tmp_buf);
-                    tmp_buf.clear();
-                    if out_buf.len() >= buf_size {
-                        output.write_all(&out_buf)?;
-                        out_buf.clear();
-                    }
-                }
                 continue;
             }
 
@@ -252,14 +244,6 @@ fn run(opts: &Options) -> io::Result<()> {
                 }
                 if !opts.remove_comments {
                     tmp_buf.push(c);
-                    if tmp_buf.len() == buf_size {
-                        out_buf.extend_from_slice(&tmp_buf);
-                        tmp_buf.clear();
-                        if out_buf.len() >= buf_size {
-                            output.write_all(&out_buf)?;
-                            out_buf.clear();
-                        }
-                    }
                     continue;
                 }
             } else if prev_c == b'/' && c == b'*' {
@@ -309,14 +293,6 @@ fn run(opts: &Options) -> io::Result<()> {
                 _ => {
                     if c != b'\n' || prev_c != b'\n' {
                         tmp_buf.push(c);
-                        if tmp_buf.len() == buf_size {
-                            out_buf.extend_from_slice(&tmp_buf);
-                            tmp_buf.clear();
-                            if out_buf.len() >= buf_size {
-                                output.write_all(&out_buf)?;
-                                out_buf.clear();
-                            }
-                        }
                     }
                 }
             }
@@ -344,5 +320,62 @@ fn main() {
             println!("{err}");
             std::process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::sync::Mutex;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    fn regex(pattern: &str) -> Regex {
+        Regex::new(pattern).unwrap()
+    }
+
+    #[test]
+    fn filters_cells_when_buffer_is_smaller_than_group_header() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let dir = env::temp_dir();
+        let id = std::process::id();
+        let input_file = dir.join(format!("liberty-filter-{id}-input.lib"));
+        let output_file = dir.join(format!("liberty-filter-{id}-output.lib"));
+
+        fs::write(
+            &input_file,
+            b"library(x) {
+  cell (KEEP) {
+    area : 1;
+  }
+  cell (DROP) {
+    area : 2;
+  }
+}
+",
+        )
+        .unwrap();
+
+        env::set_var("LIBERTY_FILTER_BUF_SIZE", "12");
+        let opts = Options {
+            filter_in_groups: Vec::new(),
+            filter_out_groups: Vec::new(),
+            filter_in_cells: vec![regex("^KEEP$")],
+            filter_out_cells: vec![regex(".")],
+            input_file: input_file.to_string_lossy().into_owned(),
+            output_file: output_file.to_string_lossy().into_owned(),
+            remove_comments: true,
+        };
+
+        run(&opts).unwrap();
+        env::remove_var("LIBERTY_FILTER_BUF_SIZE");
+
+        let output = fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("cell (KEEP)"));
+        assert!(!output.contains("cell (DROP)"));
+
+        let _ = fs::remove_file(input_file);
+        let _ = fs::remove_file(output_file);
     }
 }
