@@ -44,7 +44,7 @@ dependencies = [
 
 [[package]]
 name = "liberty-filter"
-version = "1.0.0"
+version = "1.0.1-dev"
 dependencies = [
  "flate2",
  "regex",

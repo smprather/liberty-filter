@@ -16,6 +16,12 @@ struct Options {
     remove_comments: bool,
 }
 
+enum Command {
+    Run(Options),
+    Help,
+    Version,
+}
+
 fn usage() {
     println!("USAGE:");
     println!("  liberty_filter --in-file <file_path> --out-file <file_path> [OPTIONS]");
@@ -27,14 +33,19 @@ fn usage() {
     println!("  --in-file <file_path>        Liberty file to process");
     println!("  --out-file <file_path>       Write processed Liberty data to this file");
     println!("  --remove-comments            Remove comments");
+    println!("  --version                    Print version");
     println!("  --help                       produce help message");
+}
+
+fn version() {
+    println!("liberty_filter {}", env!("CARGO_PKG_VERSION"));
 }
 
 fn compile_regex(pattern: String) -> Result<Regex, String> {
     Regex::new(&pattern).map_err(|err| format!("invalid regex {pattern:?}: {err}"))
 }
 
-fn parse_args() -> Result<Option<Options>, String> {
+fn parse_args() -> Result<Command, String> {
     let mut filter_in_groups = Vec::new();
     let mut filter_out_groups = Vec::new();
     let mut filter_in_cells = Vec::new();
@@ -47,7 +58,8 @@ fn parse_args() -> Result<Option<Options>, String> {
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
-            "--help" => return Ok(None),
+            "--help" => return Ok(Command::Help),
+            "--version" => return Ok(Command::Version),
             "--remove-comments" => remove_comments = true,
             "--filter-in-groups" => {
                 let value = args.next().ok_or("--filter-in-groups requires a value")?;
@@ -85,7 +97,7 @@ fn parse_args() -> Result<Option<Options>, String> {
     let output_file =
         output_file.ok_or("Error: You must specify an output file, --out-file <file_path>")?;
 
-    Ok(Some(Options {
+    Ok(Command::Run(Options {
         filter_in_groups,
         filter_out_groups,
         filter_in_cells,
@@ -306,15 +318,17 @@ fn run(opts: &Options) -> io::Result<()> {
 
 fn main() {
     match parse_args() {
-        Ok(Some(opts)) => {
+        Ok(Command::Run(opts)) => {
             if let Err(err) = run(&opts) {
                 eprintln!("{err}");
                 std::process::exit(1);
             }
         }
-        Ok(None) => {
+        Ok(Command::Help) => {
             usage();
-            std::process::exit(1);
+        }
+        Ok(Command::Version) => {
+            version();
         }
         Err(err) => {
             println!("{err}");
