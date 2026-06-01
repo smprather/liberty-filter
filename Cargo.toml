@@ -1,0 +1,17 @@
+[package]
+name = "liberty-filter"
+version = "0.1.0"
+edition = "2021"
+autobins = false
+
+[[bin]]
+name = "liberty_filter"
+path = "src/main.rs"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+
+[dependencies]
+flate2 = "1.1.9"
+regex = "1.12.3"
