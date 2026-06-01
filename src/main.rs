@@ -152,7 +152,7 @@ fn should_filter(
             }
         } else if c == b'"' {
             in_quotes = true;
-        } else if c == b'\n' || c == b' ' || c == b'\t' {
+        } else if c.is_ascii_whitespace() {
             continue;
         }
 
@@ -252,6 +252,9 @@ fn run(opts: &Options) -> io::Result<()> {
                             out_buf.clear();
                         }
                     }
+                    continue;
+                }
+                if opts.remove_comments {
                     continue;
                 }
                 if !opts.remove_comments {
@@ -388,6 +391,87 @@ mod tests {
         let output = fs::read_to_string(&output_file).unwrap();
         assert!(output.contains("cell (KEEP)"));
         assert!(!output.contains("cell (DROP)"));
+
+        let _ = fs::remove_file(input_file);
+        let _ = fs::remove_file(output_file);
+    }
+
+    #[test]
+    fn filters_cells_with_crlf_line_endings() {
+        let dir = env::temp_dir();
+        let id = std::process::id();
+        let input_file = dir.join(format!("liberty-filter-{id}-crlf-input.lib"));
+        let output_file = dir.join(format!("liberty-filter-{id}-crlf-output.lib"));
+
+        fs::write(
+            &input_file,
+            b"library(x) {\r\n  cell (KEEP) {\r\n    area : 1;\r\n  }\r\n  cell (DROP) {\r\n    area : 2;\r\n  }\r\n}\r\n",
+        )
+        .unwrap();
+
+        let opts = Options {
+            filter_in_groups: Vec::new(),
+            filter_out_groups: Vec::new(),
+            filter_in_cells: vec![regex("^KEEP$")],
+            filter_out_cells: vec![regex(".")],
+            input_file: input_file.to_string_lossy().into_owned(),
+            output_file: output_file.to_string_lossy().into_owned(),
+            remove_comments: true,
+        };
+
+        run(&opts).unwrap();
+
+        let output = fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("cell (KEEP)"));
+        assert!(!output.contains("cell (DROP)"));
+
+        let _ = fs::remove_file(input_file);
+        let _ = fs::remove_file(output_file);
+    }
+
+    #[test]
+    fn removes_comments_without_polluting_next_group_header() {
+        let dir = env::temp_dir();
+        let id = std::process::id();
+        let input_file = dir.join(format!("liberty-filter-{id}-comment-input.lib"));
+        let output_file = dir.join(format!("liberty-filter-{id}-comment-output.lib"));
+
+        fs::write(
+            &input_file,
+            b"library(x) {
+  /*
+   * cell (COMMENT_ONLY) {
+   */
+  cell (KEEP) {
+    area : 1;
+  }
+  /*
+   * long comment before dropped cell
+   */
+  cell (DROP) {
+    area : 2;
+  }
+}
+",
+        )
+        .unwrap();
+
+        let opts = Options {
+            filter_in_groups: Vec::new(),
+            filter_out_groups: Vec::new(),
+            filter_in_cells: vec![regex("^KEEP$")],
+            filter_out_cells: vec![regex(".")],
+            input_file: input_file.to_string_lossy().into_owned(),
+            output_file: output_file.to_string_lossy().into_owned(),
+            remove_comments: true,
+        };
+
+        run(&opts).unwrap();
+
+        let output = fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("cell (KEEP)"));
+        assert!(!output.contains("cell (DROP)"));
+        assert!(!output.contains("COMMENT_ONLY"));
 
         let _ = fs::remove_file(input_file);
         let _ = fs::remove_file(output_file);
