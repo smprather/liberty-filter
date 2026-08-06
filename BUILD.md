@@ -1,6 +1,6 @@
 # Build
 
-This project builds one Rust executable: `liberty_filter`.
+This project builds one Rust executable: `liberty-filter`.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ delete `vendor/` unless you regenerate it with `cargo vendor`.
 The optimized executable is:
 
 ```sh
-target/release/liberty_filter
+target/release/liberty-filter
 ```
 
 For development builds:
@@ -38,13 +38,13 @@ cargo run --release -- --in-file generic80_ss_125c_1p116v_0p84v.lib.gz --out-fil
 Equivalent direct binary invocation after a release build:
 
 ```sh
-target/release/liberty_filter --in-file generic80_ss_125c_1p116v_0p84v.lib.gz --out-file /tmp/out.lib.gz
+target/release/liberty-filter --in-file generic80_ss_125c_1p116v_0p84v.lib.gz --out-file /tmp/out.lib.gz
 ```
 
 Useful options:
 
 ```sh
-target/release/liberty_filter \
+target/release/liberty-filter \
   --in-file generic80_ss_125c_1p116v_0p84v.lib.gz \
   --out-file /tmp/out.lib.gz \
   --filter-out-cells '^and2' \
@@ -67,7 +67,7 @@ Run the tool against the included fixture:
 ```sh
 cargo run --release --offline -- \
   --in-file generic80_ss_125c_1p116v_0p84v.lib.gz \
-  --out-file /tmp/liberty_filter.lib.gz
+  --out-file /tmp/liberty-filter.lib.gz
 ```
 
 ## Release Notes

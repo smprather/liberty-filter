@@ -4,7 +4,7 @@
 
 This repository contains tools for reducing and rewriting Liberty timing files.
 The Rust implementation lives in `src/main.rs` and is built as the
-`liberty_filter` binary. Helper scripts such as `strip_cell_underscores.py` and `main.py`
+`liberty-filter` binary. Helper scripts such as `strip-cell-underscores.py` and `main.py`
 are at the repository root. Large Liberty fixtures are also root-level, for
 example `generic80_ss_125c_1p116v_0p84v.lib`; avoid adding generated benchmark
 outputs unless they are intentionally part of a test fixture.
@@ -27,7 +27,8 @@ Rust code uses the standard 2021 edition style: four-space indentation,
 `snake_case` functions and variables, and `CamelCase` types. Run `cargo fmt`
 before submitting Rust changes. Keep the parser byte-oriented where possible;
 Liberty files are large, and unnecessary UTF-8 conversion can hurt throughput.
-Python helpers should be small, executable scripts with `snake_case` names.
+Python helpers should be small executable scripts. Python identifiers use
+`snake_case`; executable filenames use `kebab-case`.
 
 ## Testing Guidelines
 

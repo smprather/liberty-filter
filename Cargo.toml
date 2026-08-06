@@ -5,7 +5,7 @@ edition = "2021"
 autobins = false
 
 [[bin]]
-name = "liberty_filter"
+name = "liberty-filter"
 path = "src/main.rs"
 
 [profile.release]

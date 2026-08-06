@@ -24,7 +24,7 @@ enum Command {
 
 fn usage() {
     println!("USAGE:");
-    println!("  liberty_filter --in-file <file_path> --out-file <file_path> [OPTIONS]");
+    println!("  liberty-filter --in-file <file_path> --out-file <file_path> [OPTIONS]");
     println!("OPTIONS:");
     println!("  --filter-in-groups <regex>   Regex pattern of groups to keep. Can be repeated.");
     println!("  --filter-out-groups <regex>  Regex pattern of groups to delete. Can be repeated.");
@@ -38,7 +38,7 @@ fn usage() {
 }
 
 fn version() {
-    println!("liberty_filter {}", env!("CARGO_PKG_VERSION"));
+    println!("liberty-filter {}", env!("CARGO_PKG_VERSION"));
 }
 
 fn compile_regex(pattern: String) -> Result<Regex, String> {
