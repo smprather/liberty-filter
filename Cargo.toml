@@ -1,6 +1,6 @@
 [package]
 name = "liberty-filter"
-version = "1.0.1"
+version = "1.0.2-dev"
 edition = "2021"
 autobins = false
 
